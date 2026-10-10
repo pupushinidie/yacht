@@ -511,7 +511,9 @@ function runBot(room: RoomState, playerId: string, key: string): void {
   let command: GameCommand | null = null;
   try {
     command = botCommand(redactGameForViewer(game, playerId), playerId);
-    room.game = command ? applyAutoCommand(game, playerId, command) : timeoutTurn(game, playerId);
+    // 人机座位走的就是它自己的棋；真人托管、离线时由人机代打，填分记录标「自动」
+    const isBotSeat = room.members.find((candidate) => candidate.playerId === playerId)?.bot === true;
+    room.game = command ? (isBotSeat ? applyCommand : applyAutoCommand)(game, playerId, command) : timeoutTurn(game, playerId);
   } catch (error) {
     console.error("人机行动失败，按超时处理", error);
     command = null;

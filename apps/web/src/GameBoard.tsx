@@ -349,7 +349,7 @@ export default function GameBoard(props: GameBoardProps) {
           {member?.auto && !finished && (
             <div className="yt-auto">
               <span>托管中：人机在替你打。</span>
-              <button className="quiet-button" type="button" onClick={() => onAuto(false)}>取消托管</button>
+              <button className="quiet-button yt-auto-cancel" type="button" onClick={() => onAuto(false)}>取消托管</button>
             </div>
           )}
 

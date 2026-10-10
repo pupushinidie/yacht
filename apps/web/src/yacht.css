@@ -510,3 +510,4 @@
   .app-shell.yt-room .yt-room-side { display: flex; flex-direction: column; gap: 12px; }
   .app-shell.yt-room .game-rules { margin-top: 8px; }
 }
+.app-shell.yt-room :is(.room-secure-note, .room-feedback) { width: fit-content; max-width: 100%; margin-left: auto; margin-right: auto; padding: 4px 12px; background: #0d1b30; }
