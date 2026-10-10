@@ -427,7 +427,10 @@
     column-gap: 16px;
   }
   .app-shell.yt-room > .topbar { grid-column: 1 / -1; height: 56px; }
-  .app-shell.yt-room > .game-rules { grid-column: 1; grid-row: 2; margin-top: 8px; }
+  .app-shell.yt-room > .yt-room-top { grid-column: 1; grid-row: 2; display: flex; align-items: center; gap: 16px; margin-top: 8px; min-width: 0; }
+  .app-shell.yt-room .yt-room-top .game-rules { margin-top: 0; flex: none; }
+  .app-shell.yt-room .yt-room-top .game-rules.open { flex: 1; }
+  .app-shell.yt-room .yt-room-top .tut-invite { flex: 1; min-width: 0; padding: 6px 12px; }
   .app-shell.yt-room > .room-layout { grid-column: 1; grid-row: 3; width: 100%; min-height: 0; padding: 8px 0 12px; overflow: hidden; }
   .app-shell.yt-room > .room-chat { grid-column: 2; grid-row: 2 / 4; min-height: 0; margin: 8px 0 12px; display: flex; flex-direction: column; }
   .app-shell.yt-room > .room-chat .room-chat-list { flex: 1; height: auto; min-height: 120px; }
@@ -512,3 +515,27 @@
 }
 .app-shell.yt-room :is(.room-secure-note, .room-feedback) { width: fit-content; max-width: 100%; margin-left: auto; margin-right: auto; padding: 4px 12px; background: #0d1b30; }
 .yt-screen.narrow .yt-yacht-fx { overflow-x: clip; overflow-y: visible; }
+
+/* ---------- 新手教程 ---------- */
+.yt-log.yt-side { gap: 8px; }
+.tut-checklist h3 { margin: 0; color: var(--gold); font-size: 24px; font-weight: 400; }
+.tut-checklist h3 small { color: var(--muted); font-size: 12px; }
+.tut-checklist ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 4px 12px; margin: 8px 0 0; padding: 0; list-style: none; }
+.tut-checklist li { display: flex; gap: 6px; color: var(--muted); font-size: 12px; line-height: 1.6; white-space: nowrap; }
+.tut-checklist li.done { color: var(--ok); }
+.tut-checklist li.now { color: var(--text); }
+.tut-checklist p { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+.app-shell .yt-hint { padding: 8px 16px; font-size: 24px; white-space: nowrap; }
+.app-shell .yt-hint.on { color: var(--gold); }
+.app-shell .welcome-copy .tut-invite, .app-shell .welcome-copy .tut-again { margin-top: 12px; }
+@media (max-width: 640px) { .app-shell .yt-hint { padding: 8px 10px; } }
+@media (max-width: 640px) {
+  .app-shell.yt-room { display: flex; flex-direction: column; }
+  .app-shell.yt-room > .topbar { order: 1; }
+  .app-shell.yt-room > .room-layout { order: 2; }
+  .app-shell.yt-room > .yt-room-top { order: 3; display: flex; flex-direction: column; gap: 8px; }
+  .app-shell.yt-room > .room-chat { order: 4; }
+  .app-shell.yt-room > .page-footer { order: 5; }
+}
+/* 小贴士放在记录栏上面（左下），不挡状态条的倒计时；手机上放在底部 */
+.app-shell.yt-game .tut-toast { top: auto; bottom: 16px; left: 16px; translate: none; width: min(640px, calc(100vw - 32px)); }

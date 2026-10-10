@@ -36,6 +36,7 @@ import RoomChat from "./RoomChat.js";
 import { socket } from "./socket.js";
 import { applyTheme, readTheme, ThemeToggle, useTheme } from "./theme.js";
 import { useVoice } from "./voice.js";
+import { TutorialInvite } from "./tutorial/Invite.js";
 import "./styles.css";
 import "./app-pixel.css";
 import "./yacht.css";
@@ -272,7 +273,10 @@ function PreviewRoom() {
           <ConnectionStatus connected />
         </div>
       </header>
-      <GameRules />
+      <div className="yt-room-top">
+        <GameRules />
+        <TutorialInvite record={params.get("tut") === "again" ? "done" : null} title="等人的时候，先学一下？" text="咕噜嘎在真牌桌上带你走几轮，不会离开房间，房主一开局就自动回来。" again="再看一遍新手教程（不会离开房间）" onOpen={() => {}} />
+      </div>
       <RoomView
         room={room}
         busy={false}

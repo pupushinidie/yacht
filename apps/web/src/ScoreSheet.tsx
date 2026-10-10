@@ -113,7 +113,7 @@ export default function ScoreSheet(props: SheetProps) {
           const member = members.find((candidate) => candidate.playerId === player.id);
           const seat = seatOf(player.color);
           return (
-            <div key={player.id} className={activeIds.includes(player.id) ? "yt-colhead active" : "yt-colhead"} style={{ "--seat": seat.hex } as CSSProperties} title={player.name}>
+            <div key={player.id} className={activeIds.includes(player.id) ? "yt-colhead active" : "yt-colhead"} style={{ "--seat": seat.hex } as CSSProperties} title={player.name} data-tutorial={`col-${player.id}`}>
               <img src={avatarArt(player.color)} alt="" />
               <span>{player.id === selfId ? "你" : player.name}</span>
               {member?.bot && <em className="yt-tag bot">人机</em>}

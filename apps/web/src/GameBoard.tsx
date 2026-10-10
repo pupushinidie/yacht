@@ -17,6 +17,9 @@ import GameRules from "./GameRules.js";
 import { GameRoomMenu, SpectateBar } from "./RoomExtras.js";
 import ScoreSheet from "./ScoreSheet.js";
 import { socket } from "./socket.js";
+import { Coach, TipToast } from "./tutorial/Coach.js";
+import { useFirstTimeTips } from "./tutorial/tips.js";
+import { detectTips, GAME_ID, hintFor, TIPS, type Hint } from "./tutorialGame.js";
 
 export interface GameBoardProps {
   readonly room: LobbyRoomSnapshot;
@@ -44,6 +47,17 @@ export interface GameBoardProps {
   readonly tutorialBar?: ReactNode;
   /** 教程里不显示菜单里的托管、解散。 */
   readonly practice?: boolean;
+  /**
+   * online：真实对局（默认）；tutorial：新手教程的剧本进行中（咕噜嘎在讲，不出提示和小贴士）；
+   * practice：教程后的练习局（随时能看提示）。
+   */
+  readonly mode?: "online" | "tutorial" | "practice";
+  /** 结算框里替代「再来一局」的按钮（练习局放「结束教程」「再练一局」）。 */
+  readonly finalActions?: ReactNode;
+  /** 顶栏右边多放的按钮（教程的「退出教程」）。 */
+  readonly topActions?: ReactNode;
+  /** 换掉记录栏的内容（教程进度）。 */
+  readonly sidePanel?: ReactNode;
 }
 
 /** 掷骰动画时长（骰子翻滚 12 帧 × 0.05 秒）。 */
@@ -157,6 +171,25 @@ export default function GameBoard(props: GameBoardProps) {
   const rolled = !!myTurnState && myTurnState.rolls > 0;
   const me = game.players.find((player) => player.id === selfId);
   const lastOfTray = [...game.history].reverse().find((record) => record.player === trayOwner && record.round === game.round);
+
+  // ---------- 提示（只有自己和人机时）、「第一次遇到」小贴士 ----------
+  const mode = props.mode ?? "online";
+  const botsOnly = room.members.every((candidate) => candidate.id === myMemberId || candidate.bot);
+  const canHint = !spectating && !member?.auto && canAct && (mode === "practice" || (mode === "online" && botsOnly));
+  const [hintState, setHint] = useState<{ version: number; hint: Hint } | null>(null);
+  const shownHint = hintState && hintState.version === game.version && canHint ? hintState.hint : null;
+  const toggleHint = () => setHint((current) => (current && current.version === game.version ? null : { version: game.version, hint: hintFor(game, selfId) }));
+  useEffect(() => {
+    if (!canHint) return;
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.target as HTMLElement | null)?.closest("input, textarea")) return;
+      if (event.key.toLowerCase() === "h") toggleHint();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canHint, game.version]);
+  const tips = useFirstTimeTips(GAME_ID, game.version, () => detectTips(game, selfId), TIPS, mode === "online" && !spectating);
 
   // ---------- 动画：只看 version 变没变 ----------
   const [rolling, showRolling] = useFlash<{ indices: number[]; player: string }>();
@@ -323,9 +356,12 @@ export default function GameBoard(props: GameBoardProps) {
         <div className="yt-round" data-tutorial="round"><span>第</span><b>{game.round}</b><span>/13 轮</span>{simultaneous ? <small>同时掷</small> : null}</div>
         <div className="yt-topbar-right">
           {spectating && <span className="yt-tag watch">观战</span>}
-          <button className={panel === "chat" ? "quiet-button on" : "quiet-button"} type="button" onClick={() => setPanel(panel === "chat" ? "" : "chat")}>
-            聊天{unread > 0 ? <b className="yt-badge">{unread}</b> : null}
-          </button>
+          {props.topActions}
+          {chat && (
+            <button className={panel === "chat" ? "quiet-button on" : "quiet-button"} type="button" onClick={() => setPanel(panel === "chat" ? "" : "chat")}>
+              聊天{unread > 0 ? <b className="yt-badge">{unread}</b> : null}
+            </button>
+          )}
           <button className={panel === "menu" ? "quiet-button on" : "quiet-button"} type="button" onClick={() => setPanel(panel === "menu" ? "" : "menu")} data-tutorial="menu">菜单</button>
           {themeToggle}
         </div>
@@ -403,6 +439,9 @@ export default function GameBoard(props: GameBoardProps) {
               ) : (
                 <span className="yt-tray-note">{finished ? "对局结束" : spectating ? "观战中" : simultaneous ? "等其他人填完" : `等 ${current.name} 掷完`}</span>
               )}
+              {canHint && (
+                <button className={shownHint ? "quiet-button yt-hint on" : "quiet-button yt-hint"} type="button" data-tutorial="hint" onClick={toggleHint}>提示</button>
+              )}
               {canHold && !narrow && <span className="yt-tray-tip">点骰子留下 / 放回（键盘 1–5）</span>}
             </div>
           </div>
@@ -440,14 +479,15 @@ export default function GameBoard(props: GameBoardProps) {
             })}
           </div>
 
-          <div className="yt-log" aria-label="记录">
-            {[...game.history].slice(-8).reverse().map((record, index) => (
+          <div className={props.sidePanel ? "yt-log yt-side" : "yt-log"} aria-label="记录">
+            {props.sidePanel}
+            {!props.sidePanel && [...game.history].slice(-8).reverse().map((record, index) => (
               <div key={`${record.player}-${record.round}-${record.cat}`} className={index === 0 ? "yt-log-row latest" : "yt-log-row"}>
                 <img src={catIcon(record.cat)} alt="" />
                 <span>第 {record.round} 轮 · {recordText(record, name)}</span>
               </div>
             ))}
-            {game.history.length === 0 && <div className="yt-log-row muted">每填一格都会记在这里。</div>}
+            {!props.sidePanel && game.history.length === 0 && <div className="yt-log-row muted">每填一格都会记在这里。</div>}
           </div>
         </section>
 
@@ -505,17 +545,31 @@ export default function GameBoard(props: GameBoardProps) {
       )}
 
       {finished && !hideResult && (
-        <ResultDialog game={game} room={room} selfId={selfId} spectating={spectating} name={name} onRematch={onRematch} onHide={() => setHideResult(true)} onLeave={onLeave} />
+        <ResultDialog game={game} room={room} selfId={selfId} spectating={spectating} name={name} onRematch={onRematch} onHide={() => setHideResult(true)} onLeave={onLeave} actions={props.finalActions} />
       )}
       {finished && hideResult && (
         <button className="primary-button yt-show-result" type="button" onClick={() => setHideResult(false)}>看结算</button>
       )}
+      {shownHint && (
+        <Coach
+          view={{
+            key: `hint-${game.version}`,
+            say: shownHint.say,
+            ...(shownHint.note ? { note: shownHint.note } : {}),
+            anchor: shownHint.anchor,
+            focus: false,
+            face: "think",
+            actions: <button className="quiet-button" type="button" onClick={() => setHint(null)}>知道了</button>,
+          }}
+        />
+      )}
+      {tips.tip && <TipToast tip={tips.tip} onClose={tips.dismiss} onNever={tips.never} />}
       {confirmDialog}
     </div>
   );
 }
 
-function ResultDialog({ game, room, selfId, spectating, name, onRematch, onHide, onLeave }: {
+function ResultDialog({ game, room, selfId, spectating, name, onRematch, onHide, onLeave, actions }: {
   game: GameState;
   room: LobbyRoomSnapshot;
   selfId: string;
@@ -524,6 +578,7 @@ function ResultDialog({ game, room, selfId, spectating, name, onRematch, onHide,
   onRematch: (accept: boolean) => void;
   onHide: () => void;
   onLeave: () => void;
+  actions?: ReactNode;
 }) {
   const result = game.finalResult!;
   const ranked = [...game.players].sort((a, b) => result.ranks[a.id]! - result.ranks[b.id]!);
@@ -559,12 +614,12 @@ function ResultDialog({ game, room, selfId, spectating, name, onRematch, onHide,
             );
           })}
         </div>
-        {room.rematch && !spectating ? (
+        {room.rematch && !spectating && !actions ? (
           <p className="yt-result-note">再来一局？{remaining !== null ? `${remaining} 秒内` : ""}所有人都同意就重新开局（已同意 {room.rematch.acceptedIds.length}/{room.members.length}）。</p>
         ) : null}
         <div className="gm-panel-actions">
           <button className="quiet-button" type="button" onClick={onHide}>看计分表</button>
-          {spectating ? (
+          {actions ? actions : spectating ? (
             <button className="quiet-button" type="button" onClick={onLeave}>离开观战</button>
           ) : room.rematch ? (
             <>

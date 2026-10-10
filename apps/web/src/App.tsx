@@ -10,6 +10,10 @@ import { roomRole, RoomSettingsPanel, SeatSwitch } from "./RoomExtras.js";
 import { socket } from "./socket.js";
 import { ThemeToggle, useTheme } from "./theme.js";
 import { useVoice } from "./voice.js";
+import { TutorialInvite } from "./tutorial/Invite.js";
+import { readTutorial } from "./tutorial/storage.js";
+import { GAME_ID } from "./tutorialGame.js";
+import TutorialMode from "./TutorialMode.js";
 
 type EntryMode = "create" | "join";
 
@@ -40,6 +44,26 @@ function App() {
   // 观战时从谁的座位看（默认第一位玩家）。
   const [watchId, setWatchId] = useState("");
   const voice = useVoice(room);
+  // 新手教程：首页或等候房间点进来（地址带 ?tutorial 时直接打开，游戏中心可以直接链过来）
+  const [tutorialOpen, setTutorialOpen] = useState(() => new URLSearchParams(window.location.search).has("tutorial"));
+
+  function closeTutorial() {
+    setTutorialOpen(false);
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("tutorial")) {
+      params.delete("tutorial");
+      const query = params.toString();
+      window.history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`);
+    }
+  }
+
+  // 在等候房间里看教程时，房主一开局就回到牌桌（不然这一步会超时、转成托管）
+  useEffect(() => {
+    if (tutorialOpen && room?.status === "playing") {
+      closeTutorial();
+      setNotice("对局开始了，教程先停在这里。");
+    }
+  }, [tutorialOpen, room?.status]);
 
   // 在房间里时服务端不推送在线牌桌列表；回到首页时主动拉一次最新的。
   useEffect(() => {
@@ -214,6 +238,15 @@ function App() {
     }
   }
 
+  if (tutorialOpen && room?.status !== "playing") {
+    return (
+      <main className="app-shell yt-game">
+        <DeckBackdrop theme={theme} />
+        <TutorialMode name={name} brand={<Brand />} themeToggle={themeToggle} waitingRoom={room?.code} onExit={closeTutorial} />
+      </main>
+    );
+  }
+
   if (room?.status === "playing" && room.game) {
     const players = room.game.players;
     const watched = players.some((player) => player.id === watchId) ? watchId : players[0]!.id;
@@ -253,7 +286,16 @@ function App() {
             <ConnectionStatus connected={connected} />
           </div>
         </header>
-        <GameRules />
+        <div className="yt-room-top">
+          <GameRules />
+          <TutorialInvite
+            record={readTutorial(GAME_ID)}
+            title="等人的时候，先学一下？"
+            text="咕噜嘎在真牌桌上带你走几轮，不会离开房间，房主一开局就自动回来。"
+            again="再看一遍新手教程（不会离开房间）"
+            onOpen={() => setTutorialOpen(true)}
+          />
+        </div>
         <RoomView
           room={room}
           busy={busy}
@@ -295,6 +337,13 @@ function App() {
             然后在计分表 13 格里挑一格填分——凑不成也得划掉一格。13 轮填满，总分最高的人赢。
             一个人也能开局挑战最高分，人不够可以加人机。
           </p>
+          <TutorialInvite
+            record={readTutorial(GAME_ID)}
+            title="第一次玩？3 分钟学会"
+            text="咕噜嘎在真牌桌上带你走几轮，学完和人机打完这局。"
+            again="再看一遍新手教程"
+            onOpen={() => setTutorialOpen(true)}
+          />
           <div className="yt-showcase" aria-hidden="true">
             {[6, 6, 6, 6, 6].map((face, index) => <img key={index} src={dieArt(face, index === 2)} alt="" />)}
           </div>

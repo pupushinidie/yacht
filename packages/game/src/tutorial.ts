@@ -28,7 +28,7 @@ interface StepBase {
   readonly noteTouch?: string;
   /**
    * 高亮哪个元素：网页里 data-tutorial 的值。
-   * 固定的有 status、dice、roll、sheet、players、upper-bonus、my-total、round、menu；
+   * 固定的有 status、dice、roll、sheet、players、upper-bonus、my-total、round、menu；计分表列头 col-<玩家 id>；
    * 单颗骰子 die-0 … die-4；自己计分表上的格子 cell-<格子代码>（如 cell-U3、cell-LLS）。
    */
   readonly anchor?: string;
@@ -53,7 +53,7 @@ const score = (cat: (typeof CATS)[number]): GameCommand => ({ type: "SCORE", cat
 
 export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
-    kind: "info", id: "goal", lesson: "目标", anchor: "sheet",
+    kind: "info", id: "goal", lesson: "目标", anchor: "round",
     say: "一共 13 轮，每轮掷完骰子在计分表上填一格。",
     note: "13 格填满，总分最高的人赢。这局你和咕噜一号比。",
   },
@@ -75,7 +75,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
     say: "一点到六点加起来满 63，再奖励 35。",
     note: "差不多是每格三颗。所以五点、六点别随便浪费。",
   },
-  { kind: "watch", id: "rival-1", anchor: "sheet", moves: [ROLL, score("U4")], say: "轮到咕噜一号了，他的分记在旁边一列。" },
+  { kind: "watch", id: "rival-1", anchor: "col-p1", moves: [ROLL, score("U4")], say: "轮到咕噜一号了，他的分记在旁边一列。" },
   // ---------- 第 2 轮：顺子 ----------
   { kind: "do", id: "r2-roll", anchor: "roll", expect: ROLL, say: "又轮到你了，掷骰。" },
   {
@@ -88,7 +88,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
     note: "4 个连续是小顺 30。大顺也能填进小顺，不过 40 更划算。",
   },
   { kind: "do", id: "r2-score", lesson: "固定分", anchor: "cell-LLS", expect: score("LLS"), say: "填进「大顺」。", note: "葫芦、小顺、大顺、快艇都是固定分，和点数大小无关。" },
-  { kind: "watch", id: "rival-2", anchor: "sheet", moves: [ROLL, score("U6")], say: "咕噜一号掷出三颗 6，填进了「六点」。" },
+  { kind: "watch", id: "rival-2", anchor: "col-p1", moves: [ROLL, score("U6")], say: "咕噜一号掷出三颗 6，填进了「六点」。" },
   // ---------- 第 3 轮：葫芦 ----------
   { kind: "do", id: "r3-roll", anchor: "roll", expect: ROLL, say: "掷骰。" },
   {
@@ -98,7 +98,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   },
   { kind: "do", id: "r3-score", anchor: "cell-LFH", expect: score("LFH"), face: "happy", say: "凑成了！填进「葫芦」得 25。" },
   {
-    kind: "watch", id: "rival-3", anchor: "sheet", moves: [ROLL, score("LSS")],
+    kind: "watch", id: "rival-3", anchor: "col-p1", moves: [ROLL, score("LSS")],
     say: "咕噜一号掷出 1、3、4、5、6，填了「小顺」30。",
     note: "小顺只要有 4 个连续，多一颗不影响。",
   },
@@ -117,7 +117,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   },
   { kind: "do", id: "r4-score", anchor: "cell-U1", expect: score("U1"), say: "填进「一点」。" },
   {
-    kind: "watch", id: "rival-4", lesson: "三条、四条、机会", anchor: "sheet", moves: [ROLL, score("L4K")],
+    kind: "watch", id: "rival-4", lesson: "三条、四条、机会", anchor: "col-p1", moves: [ROLL, score("L4K")],
     say: "咕噜一号掷出四颗 2，填「四条」：13 分。",
     note: "三条、四条、机会都按 5 颗骰子的总和算，不只算相同的那几颗。",
   },
@@ -125,7 +125,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   { kind: "do", id: "r5-roll", anchor: "roll", expect: ROLL, say: "掷骰。" },
   { kind: "info", id: "r5-explain", lesson: "快艇", anchor: "cell-LY", face: "surprised", say: "5 颗全是 6——快艇！", note: "快艇格固定 50 分。" },
   { kind: "do", id: "r5-score", anchor: "cell-LY", expect: score("LY"), face: "happy", say: "填进「快艇」拿 50 分。" },
-  { kind: "watch", id: "rival-5", anchor: "sheet", moves: [ROLL, score("LFH")], say: "咕噜一号凑了个葫芦。" },
+  { kind: "watch", id: "rival-5", anchor: "col-p1", moves: [ROLL, score("LFH")], say: "咕噜一号凑了个葫芦。" },
   // ---------- 第 6 轮：又一个快艇（+100、百搭） ----------
   { kind: "do", id: "r6-roll", anchor: "roll", expect: ROLL, say: "掷骰。" },
   {
@@ -221,5 +221,7 @@ export function anchorVisible(state: GameState, anchor: string, viewer: string):
   if (anchor === "roll") return myTurn && turn!.rolls < 3;
   if (/^die-[0-4]$/.test(anchor)) return true;
   if (anchor.startsWith("cell-")) return (CATS as readonly string[]).includes(anchor.slice("cell-".length));
+  // 计分表的列头：手机上只放自己和另一位（教程里就是对手），都看得见
+  if (anchor.startsWith("col-")) return state.players.some((player) => player.id === anchor.slice("col-".length));
   return false;
 }
