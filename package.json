@@ -1,0 +1,24 @@
+{
+  "name": "yacht",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "build:game": "npm run build -w @yacht/game",
+    "test": "vitest run",
+    "typecheck": "tsc -b && npm run typecheck -w @yacht/server && npm run typecheck -w @yacht/web",
+    "predev": "npm run build:game",
+    "dev": "concurrently -k -n server,web \"npm:dev:server\" \"npm:dev:web\"",
+    "start": "npm run build:game && npm run start -w @yacht/server",
+    "dev:server": "npm run dev -w @yacht/server",
+    "dev:web": "npm run dev -w @yacht/web",
+    "build": "npm run build:game && npm run build -w @yacht/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3",
+    "tsx": "^4.20.5",
+    "vitest": "^3.2.4"
+  }
+}

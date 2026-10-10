@@ -1,0 +1,576 @@
+{
+  "game": "yacht",
+  "direction": "A 月夜游艇甲板（deck）",
+  "items": [
+    {
+      "id": "bg-night",
+      "question": "夜间背景（牌桌，默认主题）",
+      "kind": "scene",
+      "final": "bg/deck-night.png",
+      "pick": "s4101",
+      "candidates": [
+        {
+          "value": "s4101",
+          "label": "s4101",
+          "src": "out/r1/bg-night-s4101.png",
+          "why": "推荐：大圆桌居中、马灯在左，海面和月光在上沿，和样张 A 最像，中间留给掷骰区"
+        },
+        {
+          "value": "s4102",
+          "label": "s4102",
+          "src": "out/r1/bg-night-s4102.png",
+          "why": "两盏马灯，桌子偏右"
+        },
+        {
+          "value": "s4103",
+          "label": "s4103",
+          "src": "out/r1/bg-night-s4103.png",
+          "why": "上沿一排星星排得太整齐，像虚线"
+        },
+        {
+          "value": "s4104",
+          "label": "s4104",
+          "src": "out/r1/bg-night-s4104.png",
+          "why": "月光倒影好看，但桌子偏右、左边被桅杆挡住"
+        }
+      ]
+    },
+    {
+      "id": "bg-day",
+      "question": "白天背景",
+      "kind": "scene",
+      "final": "bg/deck-day.png",
+      "pick": "s4203",
+      "candidates": [
+        {
+          "value": "s4203",
+          "label": "s4203",
+          "src": "out/r1/bg-day-s4203.png",
+          "why": "推荐：大圆桌居中，构图和夜间 s4101 对得上，碧海白帆"
+        },
+        {
+          "value": "s4201",
+          "label": "s4201",
+          "src": "out/r1/bg-day-s4201.png",
+          "why": "桌子偏左上，右边空"
+        },
+        {
+          "value": "s4202",
+          "label": "s4202",
+          "src": "out/r1/bg-day-s4202.png",
+          "why": "桌面亮，但甲板发灰"
+        },
+        {
+          "value": "s4204",
+          "label": "s4204",
+          "src": "out/r1/bg-day-s4204.png",
+          "why": "桅杆从桌子正中间穿过，挡掷骰区"
+        }
+      ]
+    },
+    {
+      "id": "dice",
+      "question": "骰子样式（代码画点，排布标准；上排没留下、下排留下带黄铜框；下面是计分表图标和掷骰翻滚帧）",
+      "kind": "sheet",
+      "final": "dice/d1..d6(-held).png",
+      "pick": "ivory",
+      "candidates": [
+        {
+          "value": "ivory",
+          "label": "象牙白",
+          "src": "out/code/overview-ivory.png",
+          "why": "推荐：象牙白 + 藏青点、一点是大红点，和柚木、马灯的暖色最搭，夜/日底上都清楚"
+        },
+        {
+          "value": "porcelain",
+          "label": "白瓷",
+          "src": "out/code/overview-porcelain.png",
+          "why": "纯白黑点最朴素，白天底上和纸色贴得太近"
+        },
+        {
+          "value": "seaglass",
+          "label": "海玻璃",
+          "src": "out/code/overview-seaglass.png",
+          "why": "青绿骰子白点，海味足，但和藏青掷骰区对比弱"
+        }
+      ]
+    },
+    {
+      "id": "cup",
+      "question": "骰盅",
+      "kind": "icon",
+      "scale": 2,
+      "final": "dice/cup.png",
+      "pick": "s4302",
+      "candidates": [
+        {
+          "value": "s4302",
+          "label": "s4302",
+          "src": "out/r1/cup-s4302.png",
+          "why": "推荐：深棕皮面 + 上下两道黄铜箍，轮廓最清楚"
+        },
+        {
+          "value": "s4301",
+          "label": "s4301",
+          "src": "out/r1/cup-s4301.png",
+          "why": "铆钉皮革，偏暗"
+        },
+        {
+          "value": "s4303",
+          "label": "s4303",
+          "src": "out/r1/cup-s4303.png",
+          "why": "暗红皮面，口沿黄铜宽"
+        },
+        {
+          "value": "s4304",
+          "label": "s4304",
+          "src": "out/r1/cup-s4304.png",
+          "why": "颜色发紫，和柚木不太搭"
+        }
+      ]
+    },
+    {
+      "id": "ic-yacht",
+      "question": "计分表图标：快艇",
+      "kind": "icon",
+      "scale": 3,
+      "final": "icons/yacht.png",
+      "pick": "y0",
+      "candidates": [
+        {
+          "value": "y0",
+          "label": "y0",
+          "src": "out/icons-fit/ic-yacht-y0.png",
+          "raw": "out/r1/ic-yacht32/ic-yacht32.png",
+          "why": "推荐：32px 出的白帆船缩到 23px，帆和黄铜腰线都清楚，和其他图标一样大"
+        },
+        {
+          "value": "y9",
+          "label": "y9",
+          "src": "out/icons-fit/ic-yacht-y9.png",
+          "raw": "out/r1/ic-yacht32/ic-yacht32-9.png",
+          "why": "帆更宽，船身更深"
+        },
+        {
+          "value": "y24",
+          "label": "y24",
+          "src": "out/icons-fit/ic-yacht-y24.png",
+          "raw": "out/r1/ic-yacht32/ic-yacht32-24.png",
+          "why": "船身带一道白浪"
+        },
+        {
+          "value": "old3",
+          "label": "old3",
+          "src": "out/icons-fit/ic-yacht-old3.png",
+          "raw": "out/r1/ic-yacht/ic-yacht-3.png",
+          "why": "24px 直接出的原版，只有 17px 大，比别的图标小一圈"
+        }
+      ]
+    },
+    {
+      "id": "ic-chance",
+      "question": "计分表图标：机会（漂流瓶）",
+      "kind": "icon",
+      "scale": 3,
+      "final": "icons/chance.png",
+      "pick": "c8",
+      "candidates": [
+        {
+          "value": "c8",
+          "label": "c8",
+          "src": "out/icons-fit/ic-chance-c8.png",
+          "raw": "out/r1/ic-chance32/ic-chance32-8.png",
+          "why": "推荐：圆肚瓶、软木塞、斜放的纸卷，缩到 23px 还清楚"
+        },
+        {
+          "value": "c0",
+          "label": "c0",
+          "src": "out/icons-fit/ic-chance-c0.png",
+          "raw": "out/r1/ic-chance32/ic-chance32.png",
+          "why": "瓶底有一点沙"
+        },
+        {
+          "value": "c24",
+          "label": "c24",
+          "src": "out/icons-fit/ic-chance-c24.png",
+          "raw": "out/r1/ic-chance32/ic-chance32-24.png",
+          "why": "瓶颈更短"
+        },
+        {
+          "value": "old0",
+          "label": "old0",
+          "src": "out/icons-fit/ic-chance-old0.png",
+          "raw": "out/r1/ic-chance/ic-chance.png",
+          "why": "24px 直接出的原版，只有 15px 大"
+        }
+      ]
+    },
+    {
+      "id": "ic-full-house",
+      "question": "计分表图标：葫芦",
+      "kind": "icon",
+      "scale": 3,
+      "final": "icons/full-house.png",
+      "pick": "g8",
+      "candidates": [
+        {
+          "value": "g8",
+          "label": "葫芦 8",
+          "src": "out/r1/ic-gourd/ic-gourd-8.png",
+          "why": "推荐：金黄葫芦 + 红绳 + 小叶子，正好对上「葫芦」这个格名"
+        },
+        {
+          "value": "g2",
+          "label": "葫芦 2",
+          "src": "out/r1/ic-gourd/ic-gourd-2.png",
+          "why": "叶子大一点"
+        },
+        {
+          "value": "g24",
+          "label": "葫芦 24",
+          "src": "out/r1/ic-gourd/ic-gourd-24.png",
+          "why": "没有叶子，最简洁"
+        },
+        {
+          "value": "code",
+          "label": "3+2 骰子",
+          "src": "out/code/ivory/icons/full-house-code.png",
+          "why": "代码画的三颗三点 + 两颗两点，意思直白但 24px 下有点挤"
+        }
+      ]
+    },
+    {
+      "id": "ic-bonus",
+      "question": "计分表图标：上半区奖励（宝箱）",
+      "kind": "icon",
+      "scale": 3,
+      "final": "icons/bonus.png",
+      "pick": "b46",
+      "candidates": [
+        {
+          "value": "b46",
+          "label": "宝箱 46",
+          "src": "out/r1/ic-bonus/ic-bonus-46.png",
+          "why": "推荐：箱口露出金币，一看就是奖励"
+        },
+        {
+          "value": "b54",
+          "label": "宝箱 54",
+          "src": "out/r1/ic-bonus/ic-bonus-54.png",
+          "why": "金币少一点"
+        },
+        {
+          "value": "b61",
+          "label": "宝箱 61",
+          "src": "out/r1/ic-bonus/ic-bonus-61.png",
+          "why": "金币闪光多，颜色偏橙"
+        }
+      ]
+    },
+    {
+      "id": "av-gull",
+      "question": "头像：座位 0 海鸥",
+      "kind": "icon",
+      "scale": 3,
+      "final": "avatars/gull.png",
+      "pick": "a9",
+      "candidates": [
+        {
+          "value": "a9",
+          "label": "9",
+          "src": "out/r1/av-gull/av-gull-9.png",
+          "why": "推荐：眯眼笑、黄围巾，表情最亲切"
+        },
+        {
+          "value": "a0",
+          "label": "0",
+          "src": "out/r1/av-gull/av-gull.png",
+          "why": "睁眼，素一点"
+        },
+        {
+          "value": "a2",
+          "label": "2",
+          "src": "out/r1/av-gull/av-gull-2.png",
+          "why": "笑，深色领口"
+        }
+      ]
+    },
+    {
+      "id": "av-otter",
+      "question": "头像：座位 1 海獭",
+      "kind": "icon",
+      "scale": 3,
+      "final": "avatars/otter.png",
+      "pick": "a16",
+      "candidates": [
+        {
+          "value": "a16",
+          "label": "16",
+          "src": "out/r1/av-otter/av-otter-16.png",
+          "why": "推荐：浅色嘴套，最像海獭不像熊"
+        },
+        {
+          "value": "a0",
+          "label": "0",
+          "src": "out/r1/av-otter/av-otter.png",
+          "why": "雨帽上有徽章"
+        },
+        {
+          "value": "a24",
+          "label": "24",
+          "src": "out/r1/av-otter/av-otter-24.png",
+          "why": "脸更圆"
+        }
+      ]
+    },
+    {
+      "id": "av-penguin",
+      "question": "头像：座位 2 企鹅",
+      "kind": "icon",
+      "scale": 3,
+      "final": "avatars/penguin.png",
+      "pick": "a9",
+      "candidates": [
+        {
+          "value": "a9",
+          "label": "9",
+          "src": "out/r1/av-penguin/av-penguin-9.png",
+          "why": "推荐：白水手帽 + 红领巾，笑眯眯"
+        },
+        {
+          "value": "a0",
+          "label": "0",
+          "src": "out/r1/av-penguin/av-penguin.png",
+          "why": "睁眼版"
+        },
+        {
+          "value": "a32",
+          "label": "32",
+          "src": "out/r1/av-penguin/av-penguin-32.png",
+          "why": "帽子小一点"
+        }
+      ]
+    },
+    {
+      "id": "av-seal",
+      "question": "头像：座位 3 海豹",
+      "kind": "icon",
+      "scale": 3,
+      "final": "avatars/seal.png",
+      "pick": "a24",
+      "candidates": [
+        {
+          "value": "a24",
+          "label": "24",
+          "src": "out/r1/av-seal/av-seal-24.png",
+          "why": "推荐：浅灰、腮红、蓝领子，船长帽"
+        },
+        {
+          "value": "a1",
+          "label": "1",
+          "src": "out/r1/av-seal/av-seal-1.png",
+          "why": "笑眼，白领子"
+        },
+        {
+          "value": "a40",
+          "label": "40",
+          "src": "out/r1/av-seal/av-seal-40.png",
+          "why": "蓝制服"
+        }
+      ]
+    },
+    {
+      "id": "av-crab",
+      "question": "头像：座位 4 螃蟹",
+      "kind": "icon",
+      "scale": 3,
+      "final": "avatars/crab.png",
+      "pick": "a10",
+      "candidates": [
+        {
+          "value": "a10",
+          "label": "10",
+          "src": "out/r1/av-crab/av-crab-10.png",
+          "why": "推荐：绿头巾、笑脸，不像海绵宝宝里的蟹老板"
+        },
+        {
+          "value": "a1",
+          "label": "1",
+          "src": "out/r1/av-crab/av-crab-1.png",
+          "why": "头巾更大"
+        },
+        {
+          "value": "a24",
+          "label": "24",
+          "src": "out/r1/av-crab/av-crab-24.png",
+          "why": "头巾在侧面"
+        }
+      ]
+    },
+    {
+      "id": "av-octopus",
+      "question": "头像：座位 5 章鱼（海龟戴紫帽子像忍者神龟，换掉了）",
+      "kind": "icon",
+      "scale": 3,
+      "final": "avatars/octopus.png",
+      "pick": "a1",
+      "candidates": [
+        {
+          "value": "a1",
+          "label": "1",
+          "src": "out/r1/av-octopus/av-octopus-1.png",
+          "why": "推荐：水手帽 + 藏青领结，笑眯眯"
+        },
+        {
+          "value": "a9",
+          "label": "9",
+          "src": "out/r1/av-octopus/av-octopus-9.png",
+          "why": "帽子更大"
+        },
+        {
+          "value": "a17",
+          "label": "17",
+          "src": "out/r1/av-octopus/av-octopus-17.png",
+          "why": "眯眼，触手更卷"
+        }
+      ]
+    },
+    {
+      "id": "cover",
+      "question": "大厅封面（384 宽，已裁掉上下黑边）",
+      "kind": "scene",
+      "final": "art/out/covers/yacht-cN.png（上线时由制作人装进大厅）",
+      "pick": "c1",
+      "candidates": [
+        {
+          "value": "c1",
+          "label": "c1",
+          "src": "out/covers/yacht-c1.png",
+          "why": "推荐：马灯照亮的圆桌上撒着白骰子，远处满月和海，和牌桌背景同一个氛围；384×166"
+        },
+        {
+          "value": "c2",
+          "label": "c2",
+          "src": "out/covers/yacht-c2.png",
+          "why": "骰子画得像圆球，不推荐；384×154"
+        },
+        {
+          "value": "c3",
+          "label": "c3",
+          "src": "out/covers/yacht-c3.png",
+          "why": "骰子从骰盅里飞出、远处一艘帆船剪影，动感强；骰子小；384×192"
+        }
+      ]
+    },
+    {
+      "id": "anim-roll",
+      "question": "掷骰动画（代码 3D 翻滚，12 帧循环，0.05s/帧）",
+      "kind": "anim",
+      "final": "dice/roll.png",
+      "pick": "code",
+      "candidates": [
+        {
+          "value": "code",
+          "label": "翻滚",
+          "src": "out/final/dice/roll.png",
+          "frames": 12,
+          "scale": 3,
+          "ms": 50,
+          "why": "推荐（唯一版本）：用同一套骰面贴图做 3D 翻滚，点数排布和静态骰子一致"
+        }
+      ]
+    },
+    {
+      "id": "anim-cup",
+      "question": "骰盅摇晃（8 帧，0.06s/帧）",
+      "kind": "anim",
+      "final": "dice/cup-shake.png",
+      "pick": "code",
+      "candidates": [
+        {
+          "value": "code",
+          "label": "代码摇晃",
+          "src": "out/final/dice/cup-shake.png",
+          "frames": 8,
+          "scale": 3,
+          "ms": 60,
+          "why": "推荐：PixelLab 三个种子都没摇起来（冒出白点或不动），改用代码左右晃 + 倾斜"
+        }
+      ]
+    },
+    {
+      "id": "anim-yacht",
+      "question": "掷出快艇的庆祝（咕噜嘎原图，12 帧循环）",
+      "kind": "anim",
+      "final": "fx/yacht.png",
+      "pick": "code",
+      "candidates": [
+        {
+          "value": "code",
+          "label": "咕噜嘎蹦跳",
+          "src": "out/final/fx/yacht.png",
+          "frames": 12,
+          "scale": 3,
+          "ms": 80,
+          "why": "推荐（唯一版本）：咕噜嘎用全站原图逐格，蹦跳 + 座位色彩纸 + 星星"
+        }
+      ]
+    },
+    {
+      "id": "anim-burst",
+      "question": "小烟花（8 帧，一次）",
+      "kind": "anim",
+      "final": "fx/burst.png",
+      "pick": "code",
+      "candidates": [
+        {
+          "value": "code",
+          "label": "烟花",
+          "src": "out/final/fx/burst.png",
+          "frames": 8,
+          "scale": 3,
+          "ms": 70,
+          "why": "推荐（唯一版本）：快艇时 5 颗骰子上方各放一朵"
+        }
+      ]
+    },
+    {
+      "id": "anim-bonus",
+      "question": "上半区奖励（宝箱蹦金币，10 帧停末帧）",
+      "kind": "anim",
+      "final": "fx/bonus.png",
+      "pick": "code",
+      "candidates": [
+        {
+          "value": "code",
+          "label": "宝箱",
+          "src": "out/final/fx/bonus.png",
+          "frames": 10,
+          "scale": 3,
+          "ms": 80,
+          "hold": 6,
+          "why": "推荐（唯一版本）：宝箱跳一下，五枚金币弹出，闪光"
+        }
+      ]
+    },
+    {
+      "id": "anim-scratch",
+      "question": "填 0 的划掉（6 帧停末帧）",
+      "kind": "anim",
+      "final": "fx/scratch.png",
+      "pick": "code",
+      "candidates": [
+        {
+          "value": "code",
+          "label": "红铅笔",
+          "src": "out/final/fx/scratch.png",
+          "frames": 6,
+          "scale": 3,
+          "ms": 60,
+          "hold": 8,
+          "why": "推荐（唯一版本）：一道红铅笔线从左划到右，停在末帧当这格的标记"
+        }
+      ]
+    }
+  ]
+}
