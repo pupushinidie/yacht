@@ -511,3 +511,4 @@
   .app-shell.yt-room .game-rules { margin-top: 8px; }
 }
 .app-shell.yt-room :is(.room-secure-note, .room-feedback) { width: fit-content; max-width: 100%; margin-left: auto; margin-right: auto; padding: 4px 12px; background: #0d1b30; }
+.yt-screen.narrow .yt-yacht-fx { overflow-x: clip; overflow-y: visible; }
