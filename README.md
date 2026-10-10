@@ -79,6 +79,19 @@ BASE_PATH=/yacht/ npm run build
 | `art/` | 美术（美术 agent 做的规格 `spec.md`、出图脚本、定稿 `out/final/`，定稿复制在 `apps/web/public/art/`） |
 | `scripts/test-bot.mjs`、`scripts/spy.mjs` | 陪玩机器人、抓包 |
 
+## 网页
+
+- 牌桌 `apps/web/src/GameBoard.tsx`（状态条、掷骰区、玩家条、记录、结算、聊天/菜单抽屉）+ `ScoreSheet.tsx`（计分表：灰字预览、百搭只亮合法格、填 0 弹像素确认框）；样式 `yacht.css`，白天版由 `day-palette.ts` 生成，手调在 `theme-day.css`。
+- 预览页：`npm run dev` 后打开 `http://localhost:5293/preview.html?s=<场景>`，参数写在 `src/preview.tsx` 开头（规则包的 22 个局面 + 界面补的动画、等候房间、首页）。
+- 截图和走查脚本在 `~/projects/qa-reports/tools/yacht/`（shoot-all.sh、analyze.mjs、play.mjs、tut-walk.mjs、tut-room.mjs）。
+
+## 新手教程
+
+- 剧本 `packages/game/src/tutorial.ts`（30 步：掷骰、留下、上半区和奖励、顺子、葫芦、三次都没凑成也要填、三条四条机会、快艇、又一个快艇按百搭填 +100），剧本骰子固定，`test/tutorial.test.ts` 检查从头走到尾。
+- 网页：`TutorialMode.tsx` 在浏览器里直接跑规则引擎，不连服务器；共用教练层 `src/tutorial/`（从车票之旅复制，不改逻辑）；提示和小贴士 `tutorialGame.ts`。
+- 入口：首页、等候房间的邀请卡，地址带 `?tutorial` 直接打开。剧本走完接着和咕噜一号打完这局。
+- 「提示」（键盘 H）：练习局，以及只有自己和人机的真实对局。
+
 ## 部署
 
 服务器上 `~/yacht`，pm2 进程 `yacht`（端口 3022），网页在 `/var/www/yacht`，Caddy `handle_path /yacht/*`（在付费网关 `@games` 里）。pm2 按仓库根目录的 `ecosystem.config.cjs` 直接启动一个 `node --import tsx` 进程跑服务端。端口和密钥存在 pm2 里，不进仓库。
