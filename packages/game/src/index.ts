@@ -1,19 +1,28 @@
 export * from "./types.js";
-export * from "./board.js";
+export * from "./scoring.js";
 export {
-  advanceRunners,
+  DICE,
+  MAX_ROLLS,
+  ROUNDS,
+  actorKey,
   apply,
+  applyAutoCommand,
   applyCommand,
-  bustProbability,
+  autoScoreCategory,
   createGame,
   defaultConfig,
+  freshTurn,
   legalActions,
-  moveOptions,
+  pendingActors,
+  rankPlayers,
   redactGameForViewer,
+  timeoutCommand,
   timeoutTurn,
 } from "./engine.js";
-export type { NewPlayer } from "./engine.js";
+export type { NewPlayer, RedactOptions } from "./engine.js";
 export { botCommand } from "./bot.js";
+export { SCENE_NAMES, buildState, makeScene, sampleSheet } from "./scenes.js";
+export type { BuildOptions, SceneName, SceneSheet } from "./scenes.js";
 export { createRng } from "./rng.js";
 export type { Rng } from "./rng.js";
 export { CAPACITY_OPTIONS, DEFAULT_ROOM_ACCESS } from "./roomTypes.js";
