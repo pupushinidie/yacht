@@ -240,4 +240,34 @@ describe("人机", () => {
     expect(rejoined.ok && rejoined.data.members.find((member) => member.id === back.id)).toMatchObject({ playerId: leaverSeat, connected: true });
     stop();
   }, 30_000);
+  it("同时掷：一个真人加人机打完整局；人机各自掷、各自填，不用等真人", async () => {
+    const host = await connect();
+    const response = await call<LobbyRoomSnapshot>((ack) => host.emit("room:create", { name: nick("同时"), capacity: 4, mode: "simultaneous" } as never, ack));
+    if (!response.ok) throw new Error(response.error);
+    for (let i = 0; i < 3; i += 1) expect((await addBot(host)).ok).toBe(true);
+    expect((await start(host)).ok).toBe(true);
+    // 真人先不动：人机这一轮都填好了，真人还在第 1 轮
+    const waiting = await updateWhere(host, (snapshot) => Object.keys(snapshot.game?.done ?? {}).length === 3);
+    expect(waiting.game!.round).toBe(1);
+    expect(waiting.game!.history).toHaveLength(0);
+    const stop = autoplay(host);
+    const done = await updateWhere(host, (snapshot) => snapshot.game?.phase === "finished", 60_000);
+    stop();
+    expect(done.game!.history).toHaveLength(52);
+  }, 70_000);
+
+  it("同时掷：掉线的人由人机代打，不卡住整轮", async () => {
+    const leaver = await connect();
+    const stayer = await connect();
+    const response = await call<LobbyRoomSnapshot>((ack) => leaver.emit("room:create", { name: nick("掉线"), capacity: 2, mode: "simultaneous" } as never, ack));
+    if (!response.ok) throw new Error(response.error);
+    expect((await call<LobbyRoomSnapshot>((ack) => stayer.emit("room:join", { name: nick("留下"), code: response.data.code }, ack))).ok).toBe(true);
+    expect((await start(leaver)).ok).toBe(true);
+    await updateWhere(stayer, (snapshot) => snapshot.game !== undefined);
+    leaver.disconnect();
+    const stop = autoplay(stayer);
+    const later = await updateWhere(stayer, (snapshot) => (snapshot.game?.round ?? 0) >= 3, 20_000);
+    stop();
+    expect(later.game!.history.some((record) => record.player !== seatOf(stayer))).toBe(true);
+  }, 30_000);
 });

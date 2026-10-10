@@ -21,7 +21,8 @@ export {
   timeoutTurn,
 } from "./engine.js";
 export type { NewPlayer, RedactOptions } from "./engine.js";
-export { botCommand } from "./bot.js";
+export { botCommand, botDecision } from "./bot.js";
+export type { BotDecision } from "./bot.js";
 export { SCENE_NAMES, buildState, makeScene, sampleSheet } from "./scenes.js";
 export type { BuildOptions, SceneName, SceneSheet } from "./scenes.js";
 export { createRng } from "./rng.js";
