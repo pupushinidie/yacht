@@ -52,6 +52,22 @@ export function actorKey(state: GameState, playerId: string): string {
   return `${state.round}:${playerId}:${state.turns[playerId]?.rolls ?? "done"}`;
 }
 
+/**
+ * 复制一份状态再改（apply 不改输入）。填分记录、事件、动作序列建好后不再改，共用引用；
+ * 会被改的计分表、骰子、done、计数都拷一份。比 structuredClone 快一个数量级（人机要在里面往前看）。
+ */
+export function cloneState(state: GameState): GameState {
+  return {
+    ...state,
+    players: state.players.map((player) => ({ ...player, sheet: { scores: { ...player.sheet.scores }, yachtBonuses: player.sheet.yachtBonuses } })),
+    turns: Object.fromEntries(Object.entries(state.turns).map(([id, turn]) => [id, { dice: [...turn.dice], held: [...turn.held], rolls: turn.rolls }])),
+    done: { ...state.done },
+    history: [...state.history],
+    events: [...state.events],
+    actionCount: { ...state.actionCount },
+  };
+}
+
 function findPlayer(state: GameState, playerId: string): Player {
   const player = state.players.find((candidate) => candidate.id === playerId);
   if (!player) throw new Error("你不在这局里。");
@@ -209,7 +225,7 @@ export function apply(state: GameState, playerId: string, command: GameCommand, 
 
 function applyInner(state: GameState, playerId: string, command: GameCommand, rng: Rng, auto: boolean): { state: GameState; events: GameEvent[] } {
   canAct(state, playerId);
-  const next = structuredClone(state);
+  const next = cloneState(state);
   const events: GameEvent[] = [];
   switch (command?.type) {
     case "ROLL":
@@ -322,8 +338,8 @@ export interface RedactOptions {
  */
 export function redactGameForViewer(state: GameState, viewerId: string, options: RedactOptions = {}): GameState {
   const { seed: _seed, rngState: _rngState, log: _log, ...rest } = state;
-  if (state.config.mode !== "simultaneous" || options.seeAll) return structuredClone(rest);
-  const view = structuredClone(rest) as GameState;
+  if (state.config.mode !== "simultaneous" || options.seeAll) return cloneState(rest as GameState);
+  const view = cloneState(rest as GameState);
   const hidden = state.phase === "playing" ? view.history.filter((record) => record.round === state.round && record.player !== viewerId) : [];
   view.history = view.history.filter((record) => !hidden.includes(record));
   for (const record of hidden) {

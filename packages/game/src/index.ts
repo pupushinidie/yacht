@@ -9,6 +9,7 @@ export {
   applyAutoCommand,
   applyCommand,
   autoScoreCategory,
+  cloneState,
   createGame,
   defaultConfig,
   freshTurn,
