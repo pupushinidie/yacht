@@ -17,15 +17,19 @@ import {
 // ---------- 每款游戏不一样的地方 ----------
 /** 最小的房间人数（对局要坐满才开始测）。 */
 const CAPACITY: Capacity = 2;
-/** 这款游戏有没有藏起来的信息。 */
-const HIDDEN_INFO = false;
-/** 开局后先走几步（每步选轮到的人的第一个合法动作），让场上有藏起来的牌。 */
-const STEPS = 4;
-/** 只在服务端的字段（牌堆顺序、种子等），观战的人永远拿不到。 */
-const SERVER_ONLY = ["deck", "seed"];
-/** 这份状态里看得到几样藏起来的东西（手牌之类）。 */
-function secretsSeen(_game: GameState): number {
-  return 0;
+/** 快艇骰子只有「同时掷」才有藏起来的信息：别人这一轮的骰子和刚填的格（§9.3），所以用同时模式测。 */
+const MODE = "simultaneous";
+const HIDDEN_INFO = true;
+/** 开局后先走几步（每步选第一个能动的人的第一个合法动作）：房主掷 3 次、填分，第二个人掷 1 次。 */
+const STEPS = 5;
+/** 只在服务端的字段（种子、随机数状态、动作序列），观战的人永远拿不到。 */
+const SERVER_ONLY = ["seed", "rngState", "log"];
+/** 这份状态里看得到几样藏起来的东西：掷过的骰子、这一轮填的格。 */
+function secretsSeen(game: GameState): number {
+  const ids = new Set(game.players.map((player) => player.id));
+  const dice = Object.entries(game.turns).filter(([id, turn]) => ids.has(id) && turn.rolls > 0).length;
+  const filled = game.history.filter((record) => ids.has(record.player) && record.round === game.round).length;
+  return dice + filled;
 }
 // ----------------------------------------
 
@@ -55,7 +59,7 @@ function nick(prefix: string): string {
 }
 
 function create(client: TestSocket, name: string): Promise<LobbyRoomSnapshot> {
-  return new Promise((resolve, reject) => client.emit("room:create", { name, capacity: CAPACITY } as never, (response: AckResponse<LobbyRoomSnapshot>) => {
+  return new Promise((resolve, reject) => client.emit("room:create", { name, capacity: CAPACITY, mode: MODE } as never, (response: AckResponse<LobbyRoomSnapshot>) => {
     if (response.ok) resolve(response.data);
     else reject(new Error(response.error));
   }));
@@ -200,9 +204,10 @@ describe("观战和公开房间", () => {
       const mover = players.find((client) => legalActions(latest.get(client)!.game!, seatOf(client)).length > 0);
       if (!mover) break;
       const action = legalActions(latest.get(mover)!.game!, seatOf(mover))[0]!;
-      const version = latest.get(viewer)!.game!.version;
+      const version = latest.get(mover)!.game!.version;
       expect((await call<LobbyRoomSnapshot>((ack) => mover.emit("game:command", action, ack))).ok).toBe(true);
-      await updateWhere(viewer, (snapshot) => snapshot.game!.version !== version);
+      // 同时模式下别人掷骰，观战的人收不到更新，所以等动的人自己的那一份
+      await updateWhere(mover, (snapshot) => snapshot.game!.version !== version);
       await delay(20);
     }
 

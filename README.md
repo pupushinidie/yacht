@@ -1,73 +1,84 @@
-# 欲罢不能（Can't Stop）
+# 快艇骰子
 
-2–4 人的掷骰登山桌游，网页联机版。掷 4 颗骰子两两分组，带着 3 个登山者往 2–12 号登山路上爬；每爬一步都要选再掷还是收手扎营，爆掉就白爬。先登顶 3 条路的人获胜。名字、美术和规则说明文字都是自己的。
+1–6 人的掷骰填表游戏，网页联机版。每回合最多掷 3 次 5 颗骰子，每次自己挑哪几颗重掷，凑出组合后必须在自己计分表的 13 个空格里挑一格填分（凑不成就填 0）。13 轮填满，总分最高的人获胜。可以加人机，一个人也能开局挑战自己的最高分。名字、美术和规则说明文字都是自己的（界面里不出现原版商标名）。
 
-线上地址：<https://gulugagame.com/cantstop/>
+线上地址：<https://gulugagame.com/yacht/>
 
 ## 本地运行
 
 ```bash
 npm install
-npm run dev          # 服务端 :3008，网页 :5181
-npm test             # 规则引擎（29 个用例，含 300 局随机模拟）
+npm run dev          # 服务端 :3022，网页 :5293（另起一套时用 SERVER_PORT / WEB_PORT 改，例如 SERVER_PORT=3122 WEB_PORT=5393）
+npm test             # 规则引擎（规则书 TC1–TC15 + 各章节场景 + 1–6 人两种模式各 300 局随机对局）和服务器测试
 npm run typecheck
+BASE_PATH=/yacht/ npm run build
 ```
 
-一个人测试：`node scripts/test-bot.mjs host 2 1` 会让机器人建一个 2 人房并打印房间码，你在网页里用房间码加入凑满后自动开局。机器人随机挑走法，推进后按「再掷爆掉的概率」决定收手还是再掷。`BOT_DELAY_MS` 调思考时间，`BOT_IDLE=1` 只挂着不动，`BOT_GREEDY=1` 更贪（方便看爆掉）。`node scripts/test-bot.mjs host 3 3` 是三个机器人自己打完一整局。
+一个人测试：
 
-## 规则要点
+- `node scripts/test-bot.mjs host 2 1`：机器人建一个 2 座位的房并打印房间码，你在网页里用房间码加入凑满后自动开局。`BOT_MODE=simultaneous` 建「同时掷」房。机器人用规则包里的人机策略，打完自动同意再来一局（`BOT_ONCE=1` 打完就退出）。`BOT_DELAY_MS` 调思考时间，`BOT_IDLE=1` 只挂着不动（等超时）。
+- `node scripts/test-bot.mjs host 3 3`：三个机器人自己打完一整局。
+- `node scripts/spy.mjs`：抓包。A、B 两个玩家加一个观战者连上真服务器，打 3 轮「同时掷」再开一局「轮流掷」，检查种子、随机数状态、动作序列有没有下发，同时掷时别人的骰子、这一轮填的格、甚至推送次数有没有漏给别人。
 
-- 11 条赛道编号 2–12，格数 3/5/7/9/11/13/11/9/7/5/3。
-- 掷 4 颗骰子，三种两两分组任选一种；两个和都能走必须都走，只能走一个时任选一个；两个和相同就在同一条路爬 2 格。
-- 3 个临时标记（登山者）：每回合最多推进 3 条不同赛道。新上一条路时从自己的营地上方一格开始。
-- 推进后选再掷或收手：收手时登山者变成营地；登山者在顶格时收手就占领这条路（撤下别人在这条路上的营地，赛道关闭）。
-- 怎么分组都走不了就爆掉，本回合进度全部作废，之前的营地不动。
-- 先占领 3 条赛道立即获胜（一次收手可能同时占领两条）。
+## 规则（自己的话）
 
-### 规格书没写清、按默认值实现的地方
+- **计分表 13 格**。上半区：一点到六点，只数对应点数的骰子（三颗 4 点填四点格得 12）。上半区六格加起来 ≥ 63，另加 35。下半区：三条（至少 3 颗相同，得 5 颗总和）、四条（至少 4 颗相同，得 5 颗总和）、葫芦（3 颗一样 + 2 颗一样，25）、小顺（4 个连续点数，30）、大顺（5 个连续点数，40）、快艇（5 颗相同，50）、机会（无条件，5 颗总和）。
+- **掷骰**：第 1 次 5 颗全掷；第 2、3 次自己挑任意几颗重掷（之前「留下」的也能重掷）。掷完第 1 次就能填分；掷满 3 次只能填分。
+- **填分**：每回合必须填一个空格，每格只能用一次；不满足条件也能填，得 0（「划掉」）。大顺可以填进小顺。
+- **快艇奖励和百搭**：快艇格已经填过（50 或 0）以后又掷出 5 颗相同：快艇格是 50 时这次另加 100（每次都加，没有上限）；不管是 50 还是 0，这次都要按顺序找格子填：① 对应点数的上半区格空着 → 必须填它；② 否则三条、四条有空的 → 填其中一格；③ 否则下半区任意空格（葫芦、小顺、大顺按固定分 25/30/40 算，机会按总和）；④ 都满了 → 剩下的上半区空格填 0。
+- **结束**：每人填满 13 格结束，总分 = 上半区 + 35 奖励 + 下半区 + 快艇奖励。总分相同并列获胜。
+- **同时掷**（开房选项，默认关）：每一轮所有人同时各掷各的、各填各的；一轮里别人的骰子和刚填的格子先不显示，只显示「已填好 / 还在掷」，全员填完一起亮出，再进下一轮。
 
-| 情况 | 现在的做法 |
-|---|---|
-| 一种分组的两个和只能走一个 | 两个都列成选项，玩家任选一个（标准规则） |
-| 登山者离顶只差 1 格却掷出同一个和两次 | 只走 1 格到顶，第二步作废，这算合法走法 |
-| 已经在顶格的登山者又掷到这条路 | 这条路走不了（不算可用的和） |
-| 回合计时 | 每一步 45 秒：回合开始没掷骰就超时→跳过这回合；掷了骰没选→自动选第一种走法并收手；推进后没决定→收手 |
-| 收手前提示 | 界面显示「再掷爆掉的概率」（枚举 6⁴ 种结果），可以隐藏 |
-| 人机 | 房主在等待时点空座位上的「加人机」（咕噜一号 / 二号 / 三号，普通难度），移出用「移出」；一个人加满人机也能开局。人机总是同意再来一局 |
-| 托管 | 连续超时 2 次转托管，由人机代打；自己动一下或点「取消托管」就交还。离线的人轮到时先等 3 秒，再由人机代打（不算超时）；用原昵称回来就交还 |
+### 默认规则表（规则书没写死、开工拍板和全站约定）
+
+| 情况 | 现在的做法 | 出处 |
+|---|---|---|
+| 快艇格空着时 5 颗相同填葫芦 | 不算葫芦，得 0 | 开工拍板（§11-1） |
+| 百搭顺序 | Hasbro 2016 原文：上半区 → 三条/四条 → 下半区任意（借用固定分）→ 上半区填 0 | 开工拍板（§11-4、§11-2） |
+| 快艇奖励次数 | 不设上限，只在快艇格是 50 时给 | 开工拍板（§11-6） |
+| 平分 | 并列获胜，名次相同 | 开工拍板（§11-3） |
+| 计分表 | 只做经典计分表 | 开工拍板（§11-5） |
+| 先手 | 服务器随机决定，之后按座位顺序 | 规则书 §3 |
+| 人数 | 房间座位 2–6，人没坐满也能开局，1 人也行 | 规则书 §8、全站约定 |
+| 第 1 次掷骰 | 必须 5 颗全掷（`reroll` 不给或给全 5 颗） | 规则书 §5-3 |
+| 不带 `reroll` 的重掷 | 重掷没「留下」的那几颗；全部留下时拒绝 | 规则书 §4.1 |
+| 「留下」 | `HOLD` 命令，只是标记，不算决定、不重置倒计时；重掷过的那颗自动取消留下 | 规则书 §4.1、§9.2 |
+| 每步限时 | 每个决定 30 秒（掷骰、填分各算一次）。还没掷 → 自动掷；掷过 → 不再重掷，填当前得分最高的格（同分先上半区、划 0 先划一点，再固定分格，再三条/四条，最后机会；快艇格只在别无选择时划 0） | 规则书 §9.4 |
+| 托管 | 连续超时 2 次转托管，由人机代打；自己动一下或点「取消托管」交还。离线的人轮到时等 3 秒再由人机代打（不算超时），用原昵称回来就交还 | 全站约定 |
+| 同时掷的计时 | 每个还没填的人各自计时、各自超时；倒计时只发给自己（别人的倒计时会暴露他什么时候掷了骰） | 规则书 §9.3、§9.4 |
+| 同时掷的观战 | 默认和玩家一样一轮结束才看到；房主打开「观战看全部」后看得到每个人这一轮的骰子 | 规则书 §9.6、全站观战约定 |
+| 同时掷的推送 | 别人掷骰、改留下时你一条推送都收不到，发给你的 `version` 只数你看得到的变化（你自己的动作 + 全场填分次数），从推送次数和 version 都推不出别人掷了几次 | 规则书 §9.3 |
+| 人机 | 房主在等待时点「加人机」（咕噜一号到五号，普通难度），移出用「移出」；人机总是同意再来一局 | 全站约定 |
+
+## 对外接口（`packages/game`）
+
+- `apply(state, playerId, command, rng) → { state, events }`：纯函数，不改输入，每步 `version + 1`。服务器用 `applyCommand(state, playerId, command)`（随机数接着 `state.rngState` 取）。
+- 命令：`{ type: "ROLL", reroll?: number[] }`、`{ type: "HOLD", held: boolean[] }`、`{ type: "SCORE", cat }`。格子代码 `U1`–`U6`、`L3K` 三条、`L4K` 四条、`LFH` 葫芦、`LSS` 小顺、`LLS` 大顺、`LY` 快艇、`LCH` 机会（界面上的名字在 `CAT_NAMES`）。
+- 计分：`rawScore(dice, cat)`、`scoreFor(dice, cat, sheet)`（含百搭借用）、`legalCategories(dice, sheet)`（含百搭强制顺序）、`isWild`、`earnsYachtBonus`、`sheetTotals(sheet) → { upper, upperBonus, lower, yachtBonus, total }`。
+- 谁在动：`pendingActors(state)`（轮流模式是当前玩家，同时模式是还没填的人）、`legalActions(state, playerId)`、计时 key `actorKey(state, playerId)`。
+- 超时：`timeoutCommand(state, playerId)`、`timeoutTurn(state, playerId)`、`autoScoreCategory(dice, sheet)`。
+- 隐藏信息：`redactGameForViewer(state, viewerId, { seeAll? })`，观战者 viewerId 传 `""`。
+- 人机：`botCommand(state, playerId)`（输入必须是 redact 过的状态）。
+- **预览局面工厂**（`scenes.ts`）：
+  - `buildState(options)` 按参数造任意精确局面：`players`（人数或名字，id 是 p0、p1……）、`mode`、`sheets`（每人的 `{ scores, yachtBonuses }`）、`round`、`startPlayer`、`current`、`dice`、`rolls`、`held`、同时模式的 `done` / `doneCats`、`events`、`finished`（算出结算）。
+  - `makeScene(name, overrides?)` 按名字造常见局面（自己是 p0）：`start` `rolled` `held` `last-roll` `yacht` `wild-upper` `wild-kind` `wild-borrow` `wild-zero` `scratch` `bonus-near` `opponent-turn` `six-players` `solo` `simul-rolling` `simul-waiting` `simul-reveal` `timeout` `last-round` `final` `final-tie` `final-six`（列表在 `SCENE_NAMES`）。对手离线、托管这些是房间层的状态，预览页在成员列表上改 `connected` / `auto`。
+  - `sampleSheet(filled, variant?)` 给一张填了 n 格的像样计分表。
+  - 造出来的局面带种子，可以直接交给 `apply` 接着走；教程用按剧本出数的 Rng（`int(6)` 依次返回剧本里的点数 - 1）。
 
 ## 目录
 
 | 路径 | 内容 |
 |---|---|
-| `packages/game/src/engine.ts` | 规则引擎：`apply(state, playerId, command, rng) → { state, events }`，纯函数；配对与合法走法 `moveOptions`、推进 `advanceRunners`、爆掉、收手与占领、超时处理、爆掉概率 `bustProbability` |
-| `packages/game/src/board.ts` | 赛道编号和格数、三种分组方式 |
-| `packages/game/src/bot.ts` | 人机：本回合价值 = 各登山者多爬的格数 ÷ 赛道长（爬到顶另加分）；再掷还是收手按一步前瞻（爆掉概率 × 丢掉的价值 对比 不爆时平均多拿的价值）；选走法挑走完以后期望价值最大的。模拟对局里对「28 法则」胜率约 62% |
-| `apps/server` | Socket.IO 房间、人机座位和托管（`BOT_DELAY_SCALE=0` 让人机立刻行动，测试用）、断线用原昵称回到座位、每一步 45 秒计时（超时自动处理）、语音信令、每局的种子和动作序列写进 `logs/games.jsonl` |
-| `apps/web/src/Mountain.tsx` | 山体棋盘：11 根岩柱拼成一座山，登山者（临时标记）、营地小旗（永久标记）、山顶大旗（占领）；攀爬、摔落、插旗动画；鼠标停在走法上时预览登山者会到哪 |
-| `apps/web/src/DiceTray.tsx` | 骰子盘：翻滚动画、按分组标色、走法选项、再掷 / 收手、爆掉概率 |
-| `apps/web/src/GameBoard.tsx` | 对局界面：舞台、登山队、登山日志、横幅、结算弹窗 |
-| `art/` | PixelLab 美术流水线（见下） |
-
-## 美术流水线（`art/`）
-
-PixelLab API，密钥只在 `~/.config/pixellab/api_key`，不进仓库。每次调用记进 `art/ledger.jsonl`，`BUDGET_USD` 设上限。生成的原图和中间文件在被 gitignore 的 `art/out/`。
-
-- `pixellab.py`：API 客户端（同步出图、后台任务轮询、角色和动画），调用即记账。
-- `r1.py`：第一轮候选。小图用 `/generate-image-v2`（≤42px 一次出 64 个候选），场景大图用 `/create-image-pixen`（512×288）。
-- `sheet.py`：把一批候选拼成对照图。
-- `selection.json` + `export.py`：选定的图导出到 `apps/web/public/art/`。登山者、头像、营地小旗、山顶大旗只画红色一套，其他座位色把红色像素换色；骰面在选定的空白骰子上按点数画点。
-
-## 画面：白天版和夜间版
-
-只有像素风一种画面（原始版本已删掉），配色分夜间（深色，默认）和白天（白底）两种。顶栏「切换白天版 / 切换夜间版」随时切换，只影响自己看到的画面，记在浏览器的 `gm-pixel-theme` 里；gulugagame.com 上的大厅和各个游戏同源，共用这一个选择。
-
-- 夜间配色就是 `app-pixel.css`（首页和等候房间）和 `cantstop.css`（牌桌）本身。白天版不单独写：`apps/web/day-theme.ts`（Vite 插件）在构建时把这些样式里和颜色有关的声明照抄一份，选择器前加 `:root[data-theme="day"]`，按 `apps/web/day-palette.ts` 的调色表换成白天的颜色。改夜间样式时白天版自动跟着变，只有新出现的深色需要在调色表里补一行。
-- 机械换色不合适的地方在 `apps/web/src/theme-day.css` 里手写。
-- `index.html` 里一小段脚本在样式生效前就给 `<html>` 加上 `data-theme="day"`，打开页面不会先闪一下深色；切换逻辑和按钮在 `src/theme.tsx`。
+| `packages/game/src/scoring.ts` | 13 格计分、百搭顺序、总分明细 |
+| `packages/game/src/engine.ts` | 规则引擎、轮流 / 同时模式、超时、隐藏信息 |
+| `packages/game/src/scenes.ts` | 预览局面工厂 |
+| `packages/game/src/bot.ts` | 人机 |
+| `packages/game/test/` | 规则测试（`rules.test.ts`）、随机对局（`random-*.test.ts`） |
+| `apps/server` | Socket.IO 房间：建房、加入、玩法选择（`room:mode`）、每人一个计时器、人机和托管、观战、挤登录、管理员解散、语音信令；每局种子和动作序列写进 `logs/games.jsonl` |
+| `apps/web` | 网页 |
+| `art/` | 美术（美术 agent 做的规格 `spec.md`、出图脚本、定稿 `out/final/`，定稿复制在 `apps/web/public/art/`） |
+| `scripts/test-bot.mjs`、`scripts/spy.mjs` | 陪玩机器人、抓包 |
 
 ## 部署
 
-服务器上 `~/cantstop`，pm2 进程 `cantstop`（端口 3008），网页在 `/var/www/cantstop`，Caddy `handle_path /cantstop/*`（也在付费网关 `@games` 里）。本机运行 `~/projects/deploy.sh cantstop`（服务器拉 GitHub 上的 main）。
-
-pm2 按仓库根目录的 `ecosystem.config.cjs` 直接启动一个 `node --import tsx` 进程跑服务端（不经过 `npm start`）。端口和密钥存在 pm2 里，不进仓库。
+服务器上 `~/yacht`，pm2 进程 `yacht`（端口 3022），网页在 `/var/www/yacht`，Caddy `handle_path /yacht/*`（在付费网关 `@games` 里）。pm2 按仓库根目录的 `ecosystem.config.cjs` 直接启动一个 `node --import tsx` 进程跑服务端。端口和密钥存在 pm2 里，不进仓库。

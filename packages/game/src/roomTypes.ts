@@ -1,7 +1,7 @@
-import type { GameCommand, GameState } from "./types.js";
+import type { GameCommand, GameState, PlayMode } from "./types.js";
 
-/** 房间人数：1–6 人（规则书 §8，一个人也能开局）。 */
-export const CAPACITY_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
+/** 房间座位数：2–6（规则书 §8 建议上限 6）。人没坐满也能开局，一个人也行（挑战自己的最高分，或者加人机）。 */
+export const CAPACITY_OPTIONS = [2, 3, 4, 5, 6] as const;
 export type Capacity = (typeof CAPACITY_OPTIONS)[number];
 
 export interface LobbyMember {
@@ -41,11 +41,14 @@ export interface LobbyRoomSnapshot {
 	readonly spectators: Spectator[];
 	readonly access: RoomAccess;
 	readonly capacity: Capacity;
+	/** 房主选的玩法：轮流掷（默认）或同时掷（§8）。对局开始后以 game.config.mode 为准。 */
+	readonly mode: PlayMode;
 	readonly status: "waiting" | "playing";
 	readonly members: LobbyMember[];
 	readonly chat: RoomChatMessage[];
 	readonly game?: GameState;
-	/** 当前这一步剩余的毫秒数（发送时）；超时自动处理，见 timeoutTurn。 */
+	/** 当前这一步剩余的毫秒数（发送时）；超时自动处理，见 timeoutTurn。
+	 * 轮流模式是当前玩家的；同时模式只发自己的（别人的倒计时会暴露他什么时候掷了骰）。 */
 	readonly turnRemainingMs?: number;
 	/** 整轮结束后的「是否继续」投票；remainingMs 为发送时剩余的毫秒数。 */
 	readonly rematch?: RematchState;
@@ -92,6 +95,8 @@ export interface SendRoomChatPayload {
 export interface CreateRoomPayload {
 	readonly name: string;
 	readonly capacity: Capacity;
+	/** 不给就是轮流掷。 */
+	readonly mode?: PlayMode;
 }
 
 /** 用房间码加入，或者从首页列表按房间的公开 id 加入；spectate 为 true 时进来观战。 */
@@ -107,6 +112,7 @@ export interface PublicRoomSummary {
 	readonly id: string;
 	readonly status: "waiting" | "playing" | "finished";
 	readonly capacity: Capacity;
+	readonly mode: PlayMode;
 	readonly open: boolean;
 	readonly allowSpectators: boolean;
 	readonly spectators: number;
@@ -139,6 +145,8 @@ export interface ClientToServerEvents {
 	"room:sit": (ack: RoomAck<void>) => void;
 	"room:stand": (ack: RoomAck<void>) => void;
 	"room:dissolve": (ack: RoomAck<void>) => void;
+	/** 房主在等待时改玩法（轮流掷 / 同时掷）。 */
+	"room:mode": (mode: PlayMode, ack: RoomAck<void>) => void;
 	/** 房主在等待时把一个空座位交给人机。移出人机用 room:kick。 */
 	"room:add-bot": (ack: RoomAck<void>) => void;
 	/** 对局中打开 / 取消自己的托管。 */
