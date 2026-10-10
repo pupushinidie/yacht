@@ -56,7 +56,7 @@ function OnlineRooms({ rooms, connected, busy, onJoin }: {
                 <span className="online-room-seats">
                   {room.open ? <em className="online-room-tag open">公开</em> : null}
                   {room.spectators > 0 ? <em className="online-room-tag">观战 {room.spectators}</em> : null}
-                  {room.players.length} / {room.capacity} 人
+                  {room.players.length} / {room.capacity} 人{room.mode === "simultaneous" ? " · 同时掷" : ""}
                 </span>
               </div>
               <ul className="online-room-players">
@@ -69,7 +69,7 @@ function OnlineRooms({ rooms, connected, busy, onJoin }: {
                     {player.isActive && <small className="turn">行动中</small>}
                     {player.isWinner && <small className="winner">胜者</small>}
                     {!player.connected && <small>离线</small>}
-                    {player.score !== undefined && <b>{player.score}<span> 峰</span></b>}
+                    {player.score !== undefined && <b>{player.score}<span> 分</span></b>}
                   </li>
                 ))}
               </ul>

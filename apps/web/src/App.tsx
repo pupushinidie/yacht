@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { CAPACITY_OPTIONS, type Capacity, type GameCommand, type LobbyRoomSnapshot, type PublicRoomSummary } from "@yacht/game";
-import { climberArt, dieArt, sceneArt, SEATS } from "./art.js";
+import { CAPACITY_OPTIONS, type Capacity, type GameCommand, type LobbyRoomSnapshot, type PlayMode, type PublicRoomSummary } from "@yacht/game";
+import { avatarArt, bgArt, dieArt, SEATS } from "./art.js";
 import { useConfirm } from "./confirm.js";
 import GameBoard from "./GameBoard.js";
 import GameRules from "./GameRules.js";
@@ -25,7 +25,7 @@ function normalizeRoomCode(value: string): string {
 function App() {
   const [mode, setMode] = useState<EntryMode>("create");
   const [name, setName] = useState("");
-  const [capacity, setCapacity] = useState<Capacity>(2);
+  const [capacity, setCapacity] = useState<Capacity>(4);
   const [confirmAction, confirmDialog] = useConfirm();
   // 白天 / 夜间画面：首页、等候房间、牌桌共用，顶栏按钮随时切换；和游戏中心、其他游戏共用同一个选择。
   const [theme, toggleTheme] = useTheme();
@@ -193,6 +193,7 @@ function App() {
   const kickMember = (memberId: string) => roomCommand((ack) => socket.emit("room:kick", memberId, ack));
   const addBot = () => roomCommand((ack) => socket.emit("room:add-bot", ack));
   const setAuto = (enabled: boolean) => roomCommand((ack) => socket.emit("room:auto", enabled, ack));
+  const setRoomMode = (next: PlayMode) => roomCommand((ack) => socket.emit("room:mode", next, ack));
   const voteRematch = (accept: boolean) => roomCommand((ack) => socket.emit("room:rematch", accept, ack));
   async function dissolveRoom() {
     const ok = await confirmAction({
@@ -217,7 +218,8 @@ function App() {
     const players = room.game.players;
     const watched = players.some((player) => player.id === watchId) ? watchId : players[0]!.id;
     return (
-      <main className="app-shell cs-game">
+      <main className="app-shell yt-game">
+        <DeckBackdrop theme={theme} />
         <GameBoard
           room={room}
           busy={busy}
@@ -242,7 +244,8 @@ function App() {
 
   if (room) {
     return (
-      <main className="app-shell">
+      <main className="app-shell yt-room">
+        <DeckBackdrop theme={theme} />
         <header className="topbar">
           <Brand />
           <div className="topbar-right">
@@ -262,16 +265,18 @@ function App() {
           onKick={kickMember}
           onAddBot={addBot}
           onDissolve={dissolveRoom}
+          onMode={setRoomMode}
         />
         <RoomChat room={room} voice={voice} />
-        <footer className="page-footer">再掷一次，还是就此扎营？</footer>
+        <footer className="page-footer">再掷一次，还是现在就填？</footer>
         {confirmDialog}
       </main>
     );
   }
 
   return (
-    <main className="app-shell">
+    <main className="app-shell yt-home">
+      <DeckBackdrop theme={theme} />
       <header className="topbar">
         <Brand />
         <div className="topbar-right">
@@ -283,17 +288,18 @@ function App() {
 
       <section className="welcome-grid">
         <div className="welcome-copy">
-          <div className="eyebrow"><span className="eyebrow-line" /> 在线对战 · 2–4 人 · 测试版</div>
-          <h1>欲罢不能</h1>
+          <div className="eyebrow"><span className="eyebrow-line" /> 在线对战 · 1–6 人</div>
+          <h1>快艇骰子</h1>
           <p className="welcome-description">
-            掷 4 颗骰子，两两分组，带着 3 个登山者往 2–12 号登山路上爬。
-            每爬一步都要选：再掷一次继续冒险，还是收手扎营保住进度？贪心爆掉，这回合就白爬了。
-            先登顶 3 条路的人获胜。创建一间私人房间，或输入房间码加入朋友的对局；人不够可以加人机。
+            5 颗骰子，每轮最多掷 3 次，自己挑哪几颗重掷。凑出三条、葫芦、顺子，或者 5 颗一样的「快艇」，
+            然后在计分表 13 格里挑一格填分——凑不成也得划掉一格。13 轮填满，总分最高的人赢。
+            一个人也能开局挑战最高分，人不够可以加人机。
           </p>
-          <img className="cs-hero" src={sceneArt.hero} alt="" />
-          <div className="cs-showcase" aria-hidden="true">
-            {SEATS.map((seat, index) => <img key={seat.key} src={climberArt(index)} alt="" />)}
-            {[3, 4, 5, 6].map((face) => <img key={face} className="cs-showcase-die" src={dieArt(face)} alt="" />)}
+          <div className="yt-showcase" aria-hidden="true">
+            {[6, 6, 6, 6, 6].map((face, index) => <img key={index} src={dieArt(face, index === 2)} alt="" />)}
+          </div>
+          <div className="yt-crew" aria-hidden="true">
+            {SEATS.map((seat, index) => <img key={seat.key} src={avatarArt(index)} alt="" />)}
           </div>
         </div>
 
@@ -343,7 +349,7 @@ function App() {
 
             {mode === "create" ? (
               <>
-                <label className="field-label field-label-spaced" htmlFor="room-capacity">房间人数</label>
+                <label className="field-label field-label-spaced" htmlFor="room-capacity">房间座位</label>
                 <div className="capacity-options capacity-many" id="room-capacity" role="group" aria-label="选择房间人数">
                   {CAPACITY_OPTIONS.map((seats) => (
                     <button
@@ -354,11 +360,11 @@ function App() {
                       onClick={() => setCapacity(seats)}
                     >
                       <strong>{seats}</strong>
-                      <span>位玩家</span>
+                      <span>个座位</span>
                     </button>
                   ))}
                 </div>
-                <p className="field-hint">至少 2 位玩家后，房主即可开始；空座位可以加人机。</p>
+                <p className="field-hint">没坐满也能开局，一个人也行；空座位可以加人机。玩法（轮流掷 / 同时掷）在房间里选。</p>
               </>
             ) : (
               <>
@@ -397,21 +403,33 @@ function App() {
         <div className="how-item"><span className="how-number">03</span><span>开始对局</span></div>
       </section>
       <OnlineRooms rooms={lobbyRooms} connected={connected} busy={busy} onJoin={joinListed} />
-      <footer className="page-footer">再掷一次，还是就此扎营？</footer>
+      <footer className="page-footer">再掷一次，还是现在就填？</footer>
     </main>
   );
 }
 
-function Brand() {
+/** 月夜（白天是碧海）游艇甲板的背景：铺满整个窗口，马灯火光叠在背景同一个缩放容器里。 */
+export function DeckBackdrop({ theme }: { theme: "day" | "night" }) {
   return (
-    <a className="brand" href={import.meta.env.BASE_URL} aria-label="欲罢不能首页">
-      <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
-      <span className="brand-name">欲罢不能<span> CAN'T STOP</span></span>
+    <div className="yt-backdrop" aria-hidden="true">
+      <div className="yt-backdrop-art" style={{ backgroundImage: `url(${theme === "day" ? bgArt.day : bgArt.night})` }}>
+        {theme !== "day" && <i className="yt-lantern" style={{ backgroundImage: `url(${bgArt.lantern})` }} />}
+      </div>
+      <div className="yt-backdrop-veil" />
+    </div>
+  );
+}
+
+export function Brand() {
+  return (
+    <a className="brand" href={import.meta.env.BASE_URL} aria-label="快艇骰子首页">
+      <img className="yt-brand-die" src={dieArt(5)} alt="" />
+      <span className="brand-name">快艇骰子</span>
     </a>
   );
 }
 
-function ConnectionStatus({ connected }: { connected: boolean }) {
+export function ConnectionStatus({ connected }: { connected: boolean }) {
   return (
     <div className={connected ? "connection-status online" : "connection-status"}>
       <span className="connection-dot" />
@@ -420,7 +438,7 @@ function ConnectionStatus({ connected }: { connected: boolean }) {
   );
 }
 
-function RoomView({
+export function RoomView({
   room,
   busy,
   error,
@@ -431,6 +449,7 @@ function RoomView({
   onKick,
   onAddBot,
   onDissolve,
+  onMode,
 }: {
   room: LobbyRoomSnapshot;
   busy: boolean;
@@ -442,6 +461,7 @@ function RoomView({
   onKick: (memberId: string) => void;
   onAddBot: () => void;
   onDissolve: () => void;
+  onMode: (mode: PlayMode) => void;
 }) {
   const { isHost, spectating } = roomRole(room);
   const openSeats = Math.max(0, room.capacity - room.members.length);
@@ -464,6 +484,7 @@ function RoomView({
 
       {room.status === "waiting" ? (
         <div className="room-grid">
+          <div className="yt-room-side">
           <section className="room-panel room-code-panel">
             <div className="panel-label">房间码 <span>仅分享给朋友</span></div>
             {room.code ? (
@@ -477,6 +498,39 @@ function RoomView({
               <div className="room-code-caption">从首页列表进来观战，看不到房间码</div>
             )}
           </section>
+          <section className="room-panel yt-room-setup">
+            <div className="yt-mode" role="group" aria-label="玩法">
+              <span className="panel-label">玩法</span>
+              {(["turns", "simultaneous"] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={room.mode === option ? "room-setting on" : "room-setting"}
+                  aria-pressed={room.mode === option}
+                  disabled={!isHost || busy}
+                  onClick={() => onMode(option)}
+                  title={option === "turns" ? "一个一个轮流掷，大家围观" : "大家同时各掷各的，一轮全填完再一起亮出"}
+                >
+                  <i aria-hidden="true" />{option === "turns" ? "轮流掷" : "同时掷"}
+                </button>
+              ))}
+              <small>{room.mode === "turns" ? "一个一个轮流掷，大家围观。" : "大家同时各掷各的，一轮全填完才一起亮出。"}</small>
+            </div>
+            <p className="field-hint">每个决定限时 30 秒：还没掷就自动掷，掷过就自动填得分最高的格；连续超时 2 次由人机托管。</p>
+            <RoomSettingsPanel room={room} />
+            <SeatSwitch room={room} />
+            <div className="room-actions">
+              {isHost ? (
+                <button className="primary-button" type="button" onClick={onStart} disabled={busy || room.members.length < 1}>
+                  {busy ? <><span className="spinner" /> 正在开始</> : "开始对局"}<span aria-hidden="true">↗</span>
+                </button>
+              ) : (
+                <div className="host-wait-note"><span className="pulse-dot" /> {spectating ? "等房主开始，开始后在这里观战" : "等待房主开始对局"}</div>
+              )}
+              {isHost && room.members.length < 2 && <p className="field-hint centered">一个人开局就是挑战自己的最高分；想有对手就点空座位上的「加人机」。</p>}
+            </div>
+          </section>
+          </div>
 
           <section className="room-panel player-panel">
             <div className="panel-topline">
@@ -486,7 +540,7 @@ function RoomView({
             <div className="player-list">
               {room.members.map((member, index) => (
                 <div className="player-row" key={member.id}>
-                  <div className={`player-avatar avatar-${(index % 4) + 1}`}>{member.name.slice(0, 1).toUpperCase()}</div>
+                  <img className="yt-room-avatar" src={avatarArt(index)} alt="" />
                   <div className="player-details">
                     <strong>{member.name}{member.id === socket.id ? <small>你</small> : null}</strong>
                     <span>{member.isHost ? "房主" : member.bot ? "人机 · 普通难度" : "已加入"}</span>
@@ -505,19 +559,6 @@ function RoomView({
                   {isHost && <button className="quiet-button add-bot-button" type="button" onClick={onAddBot} disabled={busy}>加人机</button>}
                 </div>
               ))}
-            </div>
-            <p className="field-hint">每一步限时 45 秒：没掷骰就超时跳过这回合，掷了骰子后超时自动收手。</p>
-            <RoomSettingsPanel room={room} />
-            <SeatSwitch room={room} />
-            <div className="room-actions">
-              {isHost ? (
-                <button className="primary-button" type="button" onClick={onStart} disabled={busy || room.members.length < 2}>
-                  {busy ? <><span className="spinner" /> 正在开始</> : "开始对局"}<span aria-hidden="true">↗</span>
-                </button>
-              ) : (
-                <div className="host-wait-note"><span className="pulse-dot" /> {spectating ? "等房主开始，开始后在这里观战" : "等待房主开始对局"}</div>
-              )}
-              {isHost && room.members.length < 2 && <p className="field-hint centered">还需要至少 {2 - room.members.length} 位玩家加入，也可以点空座位上的「加人机」。</p>}
             </div>
           </section>
         </div>

@@ -8,14 +8,14 @@ export function roomRole(room: LobbyRoomSnapshot) {
   return { member, spectating: !member, isHost: member?.isHost ?? false };
 }
 
-/** 这款游戏有没有藏起来的信息（手牌等）；没有的话不显示「观战看手牌」。 */
-const HIDDEN_INFO = false;
+/** 快艇骰子只有「同时掷」时有藏起来的信息：别人这一轮的骰子和刚填的格（一轮结束一起亮出）。 */
+const HIDDEN_INFO = true;
 /** 藏起来的是什么（显示在开关上）。 */
-const SECRET = "手牌";
+const SECRET = "全部";
 
 const ALL_OPTIONS: { key: keyof RoomAccess; label: string; hint: string }[] = [
   { key: "allowSpectators", label: "允许观战", hint: "有房间码、或者从首页列表都能进来看" },
-  { key: "spectatorsSeeAll", label: `观战看${SECRET}`, hint: `打开后观战的人能看到${SECRET}；关掉只看公开信息` },
+  { key: "spectatorsSeeAll", label: `观战看${SECRET}`, hint: "同时掷时，打开后观战的人能马上看到每个人这一轮的骰子和填分；关掉就和玩家一样一轮结束才看到" },
   { key: "open", label: "公开房间", hint: "不认识的人也能从首页列表直接加入空座位" },
 ];
 const OPTIONS = ALL_OPTIONS.filter((option) => HIDDEN_INFO || option.key !== "spectatorsSeeAll");
@@ -128,7 +128,7 @@ export function SpectateBar({ room, watchId, onWatch, onLeave, showSeats = true 
   return (
     <div className="spectate-bar">
       <strong>观战中</strong>
-      <span className="spectate-hint">{HIDDEN_INFO ? (room.access.spectatorsSeeAll ? `能看到${SECRET}` : "只看公开信息") : ""}{HIDDEN_INFO && showSeats ? " · " : ""}{showSeats ? "从谁的座位看：" : ""}</span>
+      <span className="spectate-hint">{HIDDEN_INFO && showSeats ? (room.access.spectatorsSeeAll ? `能看到${SECRET}` : "一轮结束才看到结果") : ""}{HIDDEN_INFO && showSeats ? " · " : ""}{showSeats ? "看谁的骰子：" : ""}</span>
       {showSeats && <span className="spectate-seats">
         {players.map((player) => (
           <button

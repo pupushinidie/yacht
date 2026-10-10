@@ -1,9 +1,54 @@
 import { useState } from "react";
 
-/** 规则说明：用自己的话写，不照搬原版规则书。 */
-function GameRules() {
-  const [open, setOpen] = useState(false);
+/** 规则说明：用自己的话写，短。等候房间里是折叠面板，牌桌上放进弹窗（modal）。 */
+function RulesBody() {
+  return (
+    <div className="game-rules-panel" id="game-rules-panel">
+      <div className="game-rules-block">
+        <h3>目标</h3>
+        <p>一共 13 轮。每轮掷骰凑组合，然后<b>必须</b>在自己计分表的 13 格里挑一格填分（凑不成就填 0）。填满后总分最高的人赢，同分并列。</p>
+      </div>
+      <div className="game-rules-block">
+        <h3>掷骰</h3>
+        <ul>
+          <li>每轮最多掷 <b>3 次</b>：第 1 次 5 颗全掷；之后点骰子把它「留下」，只重掷其余的（留下的下次也能改主意再掷）。</li>
+          <li>掷完第 1 次就能填分，不一定要掷满。</li>
+        </ul>
+      </div>
+      <div className="game-rules-block">
+        <h3>计分表</h3>
+        <ul>
+          <li><b>一点到六点</b>：只数对应点数的骰子（三颗 4 点填四点格得 12）。六格加起来满 <b>63</b> 另加 <b>35</b>，大约是每格三颗。</li>
+          <li><b>三条 / 四条</b>：至少 3 / 4 颗相同，得 5 颗的总和。<b>机会</b>：随便什么，得总和。</li>
+          <li><b>葫芦</b>（3 颗一样 + 2 颗一样）25、<b>小顺</b>（4 个连续点数）30、<b>大顺</b>（5 个连续）40、<b>快艇</b>（5 颗一样）50。大顺也能填进小顺。</li>
+        </ul>
+      </div>
+      <div className="game-rules-block">
+        <h3>再掷出快艇</h3>
+        <p>快艇格填过以后又掷出 5 颗一样：快艇格是 50 就再加 <b>100</b>（次数不限）。这次要按顺序填：先填对应的点数格；满了就填三条或四条；还满就随便一格下半区（葫芦、顺子照拿固定分）；都满了就在上半区划掉一格。界面上只有能填的格子会亮。</p>
+      </div>
+      <div className="game-rules-block">
+        <h3>其他</h3>
+        <ul>
+          <li>每个决定限时 30 秒：还没掷就自动掷，掷过就自动填得分最高的格。连续超时 2 次由人机托管，自己动一下就交还。</li>
+          <li>「同时掷」房间：大家同时各掷各的，一轮全填完才一起亮出结果。</li>
+          <li>骰子在服务器上掷。掉线后用原昵称和房间码回到自己的座位。</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
 
+function GameRules({ modal = false }: { modal?: boolean }) {
+  const [open, setOpen] = useState(false);
+  if (modal) {
+    return (
+      <section className="game-rules open">
+        <h2>规则说明</h2>
+        <RulesBody />
+      </section>
+    );
+  }
   return (
     <section className={open ? "game-rules open" : "game-rules"}>
       <button
@@ -16,53 +61,7 @@ function GameRules() {
         <span aria-hidden="true">✦</span> 游戏规则
         <i aria-hidden="true">{open ? "收起 ▴" : "展开 ▾"}</i>
       </button>
-
-      {open && (
-        <div className="game-rules-panel" id="game-rules-panel">
-          <div className="game-rules-block">
-            <h3>目标</h3>
-            <p>
-              山上有 11 条登山路，编号 2–12（两颗骰子的和）。点数越常见的路越长：7 号最长 13 格，2 号和 12 号只有 3 格。
-              谁先<b>登顶 3 条路</b>谁就赢。
-            </p>
-          </div>
-
-          <div className="game-rules-block">
-            <h3>轮到你时</h3>
-            <ul>
-              <li><b>掷 4 颗骰子</b>，把它们分成两对，两对的和就是这次往上爬的两条路。比如 2、3、4、5 可以走 5 和 9、6 和 8，或者 7 号连爬 2 格。</li>
-              <li>你有 <b>3 个登山者</b>：每回合最多同时爬 3 条不同的路。在已有登山者的路上往上爬 1 格；新上一条路时，登山者从你在这条路的营地上方一格出发（还没营地就从最底下一格）。</li>
-              <li>两个和都能走就必须都走；只能走其中一个时任选一个。</li>
-              <li>每爬完一次，选择<b>再掷</b>继续冒险，或者<b>收手扎营</b>：登山者的位置换成你的营地小旗，下回合从这里接着爬。</li>
-            </ul>
-          </div>
-
-          <div className="game-rules-block">
-            <h3>爆掉</h3>
-            <p>
-              如果这把骰子怎么分组都走不了（路已经被占领、登山者已经在顶上、或者 3 个登山者都在别的路上），就<b>爆掉</b>：
-              这回合爬的全部作废，登山者摔回山脚。之前扎好的营地不受影响。
-            </p>
-          </div>
-
-          <div className="game-rules-block">
-            <h3>登顶</h3>
-            <ul>
-              <li>登山者到了一条路的最顶格，<b>收手时</b>就占领这条路：插上你的大旗，其他人在这条路上的营地全部撤下，这条路之后谁都不能再走。</li>
-              <li>到了顶格还继续掷骰，爆掉的话这次登顶也一起作废。</li>
-            </ul>
-          </div>
-
-          <div className="game-rules-block">
-            <h3>其他</h3>
-            <ul>
-              <li>每一步限时 45 秒：还没掷骰就超时会跳过这回合；掷了骰子以后超时，会替你选第一种走法并收手。</li>
-              <li>收手前可以看到「再掷爆掉的概率」，不想看可以隐藏。</li>
-              <li>骰子在服务器上掷，谁也做不了手脚。掉线后用原昵称和房间码可以回到自己的座位。</li>
-            </ul>
-          </div>
-        </div>
-      )}
+      {open && <RulesBody />}
     </section>
   );
 }
