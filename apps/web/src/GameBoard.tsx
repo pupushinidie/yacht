@@ -16,6 +16,8 @@ import { useConfirm } from "./confirm.js";
 import GameRules from "./GameRules.js";
 import { GameRoomMenu, SpectateBar } from "./RoomExtras.js";
 import ScoreSheet from "./ScoreSheet.js";
+import { useCountdownSfx, useGameSfx } from "./game-sfx.js";
+import { sfx } from "./gm-sound.js";
 import { socket } from "./socket.js";
 import { Coach, TipToast } from "./tutorial/Coach.js";
 import { useFirstTimeTips } from "./tutorial/tips.js";
@@ -172,6 +174,10 @@ export default function GameBoard(props: GameBoardProps) {
   const me = game.players.find((player) => player.id === selfId);
   const lastOfTray = [...game.history].reverse().find((record) => record.player === trayOwner && record.round === game.round);
 
+  // 动作音效（见 game-sfx.ts）；自己行动的最后 5 秒每秒一声
+  useGameSfx(game, spectating ? "" : selfId);
+  useCountdownSfx(myTurn && !member?.auto, countdown);
+
   // ---------- 提示（只有自己和人机时）、「第一次遇到」小贴士 ----------
   const mode = props.mode ?? "online";
   const botsOnly = room.members.every((candidate) => candidate.id === myMemberId || candidate.bot);
@@ -243,6 +249,8 @@ export default function GameBoard(props: GameBoardProps) {
   const toggleHold = (index: number) => {
     if (!canHold) return;
     const next = held.map((value, i) => (i === index ? !value : value));
+    // 留下 / 放回：本地马上响（按钮上 data-sfx="none"，不再响默认的轻点）
+    sfx.select(next[index]);
     setHeld(next);
     onCommand({ type: "HOLD", held: next });
   };
@@ -408,6 +416,7 @@ export default function GameBoard(props: GameBoardProps) {
                     style={{ "--i": index } as CSSProperties}
                     onClick={() => toggleHold(index)}
                     disabled={!canHold}
+                    {...(canHold ? { "data-sfx": "none" } : {})}
                     aria-pressed={isHeld}
                     aria-label={face ? `${face} 点${isHeld ? "（留下）" : ""}` : "还没掷"}
                     data-tutorial={`die-${index}`}

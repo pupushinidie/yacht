@@ -539,3 +539,7 @@
 }
 /* 小贴士放在记录栏上面（左下），不挡状态条的倒计时；手机上放在底部 */
 .app-shell.yt-game .tut-toast { top: auto; bottom: 16px; left: 16px; translate: none; width: min(640px, calc(100vw - 32px)); }
+
+/* ♪ 声音按钮在新手教程的压暗层（.tut-block，z-index 1000）上面也能点，面板也压在它上面：随时能调音量。 */
+.gm-music-toggle { position: relative; z-index: 1004; }
+body .gm-music-panel { z-index: 1005; }
